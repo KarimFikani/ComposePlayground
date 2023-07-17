@@ -33,201 +33,6 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 
 @Composable
-fun SimpleLazyVerticalGridRecomposable() {
-    val list = (1..100).map { it.toString() }.toImmutableList()
-
-    LazyVerticalGrid(
-        columns = GridCells.Adaptive(180.dp),
-        contentPadding = PaddingValues(
-            start = 12.dp,
-            top = 16.dp,
-            end = 12.dp,
-            bottom = 16.dp
-        )
-    ) {
-        items(items = list, key = { it }) { item ->
-
-            var isSelected by rememberSaveable { mutableStateOf(false) }
-
-            Card(
-                modifier = Modifier
-                    .padding(4.dp)
-                    .fillMaxWidth()
-                    .clickable {
-                        Log.d("LazyGrid::Card", "onClickable")
-                        isSelected = !isSelected
-                    }
-            ) {
-                Text(
-                    text = item,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 30.sp,
-                    color = Color(0xFFFFFFFF),
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(32.dp)
-                )
-
-                IconToggleButton(
-                    checked = isSelected,
-                    onCheckedChange = {
-                        isSelected = it
-                    }
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Favorite,
-                        contentDescription = "Favorite Item",
-                        modifier = Modifier
-                            .clickable {
-                                Log.d("LazyGrid::IconToggleButton", "onClickable")
-                                isSelected = !isSelected
-                            },
-                        tint = if (isSelected) Color.Magenta else Color.LightGray // icon color
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun SimpleLazyVerticalGridFix1() {
-    val list = (1..100).map { it.toString() }.toImmutableList()
-
-    LazyVerticalGrid(
-        columns = GridCells.Adaptive(180.dp),
-        contentPadding = PaddingValues(
-            start = 12.dp,
-            top = 16.dp,
-            end = 12.dp,
-            bottom = 16.dp
-        )
-    ) {
-        items(items = list, key = { it }) { item ->
-
-            var isSelected by rememberSaveable { mutableStateOf(false) }
-
-            Card(
-                modifier = remember {
-                    Modifier
-                        .padding(4.dp)
-                        .fillMaxWidth()
-                        .clickable {
-                            Log.d("LazyGrid::Card", "onClickable")
-                            isSelected = !isSelected
-                        }
-                }
-            ) {
-                Text(
-                    text = item,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 30.sp,
-                    color = Color(0xFFFFFFFF),
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(32.dp)
-                )
-
-                IconToggleButton(
-                    checked = isSelected,
-                    onCheckedChange = {
-                        isSelected = it
-                    }
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Favorite,
-                        contentDescription = "Favorite Item",
-                        modifier = remember {
-                            Modifier
-                                .clickable {
-                                    Log.d("LazyGrid::IconToggleButton", "onClickable")
-                                    isSelected = !isSelected
-                                }
-                        },
-                        tint = if (isSelected) Color.Magenta else Color.LightGray // icon color
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun SimpleLazyVerticalGridFix2() {
-    val list = (1..100).map { it.toString() }.toImmutableList()
-
-    LazyVerticalGrid(
-        columns = GridCells.Adaptive(180.dp),
-        contentPadding = PaddingValues(
-            start = 12.dp,
-            top = 16.dp,
-            end = 12.dp,
-            bottom = 16.dp
-        )
-    ) {
-        items(items = list, key = { it }) { item ->
-
-            var isSelected by rememberSaveable { mutableStateOf(false) }
-
-            SimpleLazyVerticalGridItem(
-                item = item,
-                isSelected = isSelected,
-                onCardClicked = { isSelected = !isSelected },
-                onIconClicked = { isSelected = !isSelected },
-                onCheckedChanged = { isSelected = it }
-            )
-        }
-    }
-}
-
-@Composable
-private fun SimpleLazyVerticalGridItem(
-    item: String,
-    isSelected: Boolean,
-    onCardClicked: () -> Unit,
-    onIconClicked: () -> Unit,
-    onCheckedChanged: (Boolean) -> Unit
-) {
-    Card(
-        modifier = Modifier
-            .padding(4.dp)
-            .fillMaxWidth()
-            .clickable {
-                Log.d("LazyGrid::Card", "onClickable")
-                onCardClicked.invoke()
-            }
-    ) {
-        Text(
-            text = item,
-            fontWeight = FontWeight.Bold,
-            fontSize = 30.sp,
-            color = Color(0xFFFFFFFF),
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(32.dp)
-        )
-
-        Row {
-            IconToggleButton(
-                checked = isSelected,
-                onCheckedChange = {
-                    onCheckedChanged(it)
-                }
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Favorite,
-                    contentDescription = "Favorite Item",
-                    modifier = Modifier
-                        .clickable {
-                            Log.d("LazyGrid::IconToggleButton", "onClickable")
-                            onIconClicked.invoke()
-                        },
-                    tint = if (isSelected) Color.Magenta else Color.LightGray // icon color
-                )
-            }
-        }
-    }
-}
-
-
-@Composable
 fun LazyVerticalGridRecomposable(paddingValues: PaddingValues) {
     val list = (1..100).map { it.toString() }.toImmutableList()
 
@@ -322,8 +127,8 @@ fun LazyVerticalGridFix(
 
             LazyVerticalGridItem(
                 item = item.value,
-                isSelected = isSelected,
-//                isSelected = item.isFavorite,
+//                isSelected = isSelected,
+                isSelected = item.isFavorite,
                 isEditable = isEditable,
                 onCardClicked = { isSelected = !isSelected },
                 onIconClicked = { isSelected = !isSelected },
@@ -393,10 +198,12 @@ private fun LazyVerticalGridItem(
                     Icon(
                         imageVector = Icons.Default.CheckCircle,
                         contentDescription = "Check Item",
-                        modifier = Modifier
-                            .clickable {
-                                // invoke callback
-                            }
+                        modifier = remember {
+                            Modifier
+                                .clickable {
+                                    // invoke callback
+                                }
+                        }
                     )
                 }
             }

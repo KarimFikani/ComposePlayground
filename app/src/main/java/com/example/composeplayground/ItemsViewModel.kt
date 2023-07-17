@@ -1,6 +1,5 @@
 package com.example.composeplayground
 
-import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.collections.immutable.ImmutableList
@@ -17,21 +16,16 @@ class ItemsViewModel : ViewModel() {
 
     private val itemsRepository = ItemsRepository()
 
-    private val _singleUiState by lazy {
-        MutableStateFlow(SingleUiState())
+    private val _uiState by lazy {
+        MutableStateFlow(UiState())
     }
-    val singleUiState: StateFlow<SingleUiState> get() = _singleUiState.asStateFlow()
-
-    private val _multiUiState by lazy {
-        MutableStateFlow<UiState<String>>(UiState.Idle)
-    }
-    val multiUiState: StateFlow<UiState<String>> get() = _multiUiState.asStateFlow()
+    val uiState: StateFlow<UiState> get() = _uiState.asStateFlow()
 
     private val items = mutableListOf<Item>()
 
-    fun fetchItemsAsSingleStateContinuously() {
+    fun fetchItemsContinuously() {
         viewModelScope.launch {
-            _singleUiState.value = SingleUiState(
+            _uiState.value = UiState(
                 uiState = UiStateEnum.LOADING
             )
 
@@ -47,7 +41,7 @@ class ItemsViewModel : ViewModel() {
                     )
                     items[0].isFavorite = Random.nextBoolean()
 
-                    _singleUiState.value = SingleUiState(
+                    _uiState.value = UiState(
                         uiState = UiStateEnum.SUCCESS,
                         screenData = ScreenData(
                             items = items.toImmutableList()
@@ -57,16 +51,16 @@ class ItemsViewModel : ViewModel() {
         }
     }
 
-    fun fetchItemsAsSingleStateOneShot() {
+    fun fetchItemsOneShot() {
         viewModelScope.launch {
-            _singleUiState.value = SingleUiState(
+            _uiState.value = UiState(
                 uiState = UiStateEnum.LOADING
             )
 
             itemsRepository.getItems()
                 .onEach { println(it) }
                 .collect { list ->
-                    _singleUiState.value = SingleUiState(
+                    _uiState.value = UiState(
                         uiState = UiStateEnum.SUCCESS,
                         screenData = ScreenData(
                             items = list.map { Item(value = it.toString(), isFavorite = false) }
@@ -74,12 +68,6 @@ class ItemsViewModel : ViewModel() {
                         )
                     )
                 }
-        }
-    }
-
-    fun fetchItemsAsMultipleStates() {
-        viewModelScope.launch {
-
         }
     }
 }
@@ -91,7 +79,7 @@ enum class UiStateEnum {
     SUCCESS
 }
 
-data class SingleUiState(
+data class UiState(
     val uiState: UiStateEnum = UiStateEnum.IDLE,
     val screenData: ScreenData? = null,
     val errorMessage: String? = null,
@@ -106,33 +94,3 @@ data class Item(
     val value: String,
     var isFavorite: Boolean
 )
-
-/**
- * [UiState] used for state flows defined in view models to send back the state to UI
- */
-@Immutable
-sealed interface UiState<out R> {
-
-    object Idle : UiState<Nothing>
-
-    /**
-     * Loading state
-     */
-    object Loading : UiState<Nothing>
-
-    /**
-     * Error state containing an error message
-     */
-    data class Error(val errorMessage: String? = null) : UiState<Nothing>
-
-    /**
-     * Templated success type holding any data type
-     */
-    data class Success<T>(val data: T) : UiState<T>
-}
-
-val <T> UiState<T>.data: T?
-    get() = (this as? UiState.Success)?.data
-
-val <T> UiState<T>.errorMessage: String?
-    get() = (this as? UiState.Error)?.errorMessage
